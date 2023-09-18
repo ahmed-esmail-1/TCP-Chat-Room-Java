@@ -14,15 +14,26 @@ import java.util.logging.Logger;
 public class Server implements Runnable {
     
     private ArrayList<ConnectionHandler> connections;
+    private ServerSocket server;
+    private boolean done;
+    
+    public Server(){
+        connections = new ArrayList<>();
+        done = false;
+    }
     
     @Override
     public void run(){
         try
         {
             ServerSocket server = new ServerSocket(8898);
-            Socket client = server.accept();
-            ConnectionHandler handler = new ConnectionHandler(client);
-            connections.add(handler);
+            while (!done) {
+                Socket client = server.accept();
+                ConnectionHandler handler = new ConnectionHandler(client);
+                connections.add(handler);
+            }
+            
+            
             
         }catch (IOException e)
         {
@@ -36,6 +47,21 @@ public class Server implements Runnable {
                 ch.sendMessage(message);
             }
         }
+    }
+    
+    public void shutdown(){
+        try{
+            done = true;
+            if (!server.isClosed()){
+                server.close();
+            }
+            for (ConnectionHandler ch: connections){
+                ch.shutdown();
+            }
+        } catch (IOException e){
+            //
+        }
+        
     }
     
     class ConnectionHandler implements Runnable {
@@ -82,6 +108,19 @@ public class Server implements Runnable {
         
         public void sendMessage(String message) {
             out.println();
+        }
+        
+        public void shutdown(){
+            try {
+                in.close();
+                out.close();
+                if (!client.isClosed()){
+                    client.close();
+                }
+            }catch (IOException e){
+                //
+            }
+            
         }
     }
     
