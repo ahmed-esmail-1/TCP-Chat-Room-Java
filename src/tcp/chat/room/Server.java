@@ -8,6 +8,9 @@ import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -16,6 +19,7 @@ public class Server implements Runnable {
     private ArrayList<ConnectionHandler> connections;
     private ServerSocket server;
     private boolean done;
+    private ExecutorService pool;
     
     public Server(){
         connections = new ArrayList<>();
@@ -27,17 +31,19 @@ public class Server implements Runnable {
         try
         {
             ServerSocket server = new ServerSocket(8898);
+            pool = Executors.newCachedThreadPool();
             while (!done) {
                 Socket client = server.accept();
                 ConnectionHandler handler = new ConnectionHandler(client);
                 connections.add(handler);
+                pool.execute(handler);
             }
             
             
             
         }catch (IOException e)
         {
-            //
+            shutdown();
         }
     }
     
@@ -96,14 +102,16 @@ public class Server implements Runnable {
                             out.println("No username provided!");
                         }
                     } else if (message.startsWith("/quit")){
-                        //handle quit
+                        broadcast(username + " Left the chat");
+                        shutdown();
                     } else {
                         broadcast(username + ": " + message);
                     }
                 }
             } catch (IOException ex) {
-                Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
-            }
+
+                shutdown(); 
+           }
         }
         
         public void sendMessage(String message) {
