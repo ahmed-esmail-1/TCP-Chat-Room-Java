@@ -58,6 +58,7 @@ public class Server implements Runnable {
     public void shutdown(){
         try{
             done = true;
+            pool.shutdown();
             if (!server.isClosed()){
                 server.close();
             }
@@ -89,7 +90,7 @@ public class Server implements Runnable {
                 out.println("Please Enter a Username: ");
                 username = in.readLine();
                 System.out.println(username + " Connected!");
-                broadcast(username + " Joined the chat");
+                broadcast(username + " Joined the chat!");
                 String message;
                 while ( (message = in.readLine()) != null ){
                     if (message.startsWith("/user ")){
@@ -115,7 +116,7 @@ public class Server implements Runnable {
         }
         
         public void sendMessage(String message) {
-            out.println();
+            out.println(message);
         }
         
         public void shutdown(){
