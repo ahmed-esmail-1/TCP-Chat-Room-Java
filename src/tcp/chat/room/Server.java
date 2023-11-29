@@ -108,7 +108,7 @@ public class Server implements Runnable {
                         broadcast(username + ": " + message);
                     }
                 }
-            } catch (IOException ex) {
+            } catch (Exception ex) {
 
                 shutdown(); 
            }
